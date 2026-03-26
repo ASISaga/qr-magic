@@ -1,0 +1,19 @@
+name: Burn Token
+on:
+  repository_dispatch:
+    types: [burn_token]
+jobs:
+  burn:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update JSON
+        run: |
+          sed -i 's/"available"/"used"/g' tokens.json
+      - name: Commit & Push
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git add tokens.json
+          git commit -m "Token Burned"
+          git push
