@@ -3,40 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exclusive Content</title>
+    <title>BBLW Experience</title>
     <style>
-        body { font-family: 'Helvetica', sans-serif; line-height: 1.6; padding: 20px; color: #333; display: none; }
-        .container { max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 40px; border-radius: 8px; }
-        h1 { color: #e41e26; } /* Coke Red */
+        body { font-family: sans-serif; display: none; padding: 20px; text-align: center; }
+        .content { max-width: 500px; margin: 50px auto; border: 1px solid #eee; padding: 20px; border-radius: 10px; }
     </style>
 </head>
-<body id="main-body">
-    <div class="container">
-        <h1>Welcome to the Genesis.</h1>
-        <p>This content was unlocked via your physical scan. This session is active for this tab only.</p>
-        <hr>
-        <p><strong>Your Unique Access:</strong> <span id="session-id"></span></p>
+<body id="page-body">
+    <div class="content">
+        <h1>Welcome.</h1>
+        <p>This page was unlocked via QR scan.</p>
+        <p>Closing this tab will end your session.</p>
     </div>
 
     <script>
-        window.onload = () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const urlAuth = urlParams.get('auth');
-            const sessionAuth = sessionStorage.getItem('active_bblw_session');
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            const urlKey = params.get('key');
+            const storedKey = sessionStorage.getItem('qr_handshake');
 
-            // Security Validation
-            if (!urlAuth || urlAuth !== sessionAuth) {
-                window.location.href = "../access-denied.html";
+            // VALIDATION: Does the URL key match the browser's session key?
+            if (!urlKey || urlKey !== storedKey) {
+                window.location.href = "../expired.html";
                 return;
             }
 
-            // Cleanup: Hide the token from the URL bar immediately
+            // CLEANUP: Remove the key from the address bar so they can't share the link
             window.history.replaceState({}, document.title, window.location.pathname);
             
-            // Show content
-            document.getElementById('session-id').innerText = urlAuth;
-            document.getElementById('main-body').style.display = 'block';
-        };
+            // SHOW CONTENT
+            document.getElementById('page-body').style.display = 'block';
+        })();
     </script>
 </body>
 </html>
