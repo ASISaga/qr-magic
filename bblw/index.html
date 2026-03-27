@@ -1,28 +1,53 @@
-<script>
-  async function gatekeeper() {
-    const res = await fetch('../tokens.json');
-    const data = await res.json();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authenticating Scan...</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #000; color: #fff; }
+        .loader { border: 3px solid #333; border-top: 3px solid #fff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div id="status">
+        <div class="loader"></div>
+    </div>
 
-    if (data.bblw === "available") {
-      // 1. Trigger the "Burn" via GitHub Action
-      // This marks the token as 'used' so the QR never works again
-      await fetch('https://api.github.com/repos/YOUR_USER/YOUR_REPO/dispatches', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer YOUR_PAT' },
-        body: JSON.stringify({ event_type: 'burn_token' })
-      });
+    <script>
+        async function startSession() {
+            try {
+                // 1. Check Availability
+                const status = await fetch('../tokens.json').then(r => r.json());
+                
+                if (status.bblw !== "available") {
+                    window.location.href = "../expired.html";
+                    return;
+                }
 
-      // 2. Generate a Session Secret
-      const sessionSecret = 'secret-' + Math.random().toString(36).substr(2, 9);
-      
-      // 3. Store it in Session Storage (This dies when the tab closes)
-      sessionStorage.setItem('valid_session', sessionSecret);
+                // 2. Create the Session Key in memory
+                const sessionKey = 'id-' + Math.random().toString(36).substring(2, 15);
+                sessionStorage.setItem('active_bblw_session', sessionKey);
 
-      // 4. Redirect to the destination with the secret in the URL
-      window.location.href = `../destination/?auth=${sessionSecret}`;
-    } else {
-      window.location.href = "../expired.html";
-    }
-  }
-  gatekeeper();
-</script>
+                // 3. Trigger the "Burn" (GitHub Action)
+                // Replace YOUR_USER/YOUR_REPO and provide your token securely
+                await fetch('https://api.github.com/repos/YOUR_USER/YOUR_REPO/dispatches', {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': 'Bearer YOUR_DISPATCH_TOKEN',
+                        'Accept': 'application/vnd.github.v3+json'
+                    },
+                    body: JSON.stringify({ event_type: 'burn_token' })
+                });
+
+                // 4. Move to Destination
+                window.location.href = `../destination/?auth=${sessionKey}`;
+            } catch (e) {
+                document.getElementById('status').innerText = "Connection Error. Please rescan.";
+            }
+        }
+        startSession();
+    </script>
+</body>
+</html>
