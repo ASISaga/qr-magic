@@ -1,19 +1,24 @@
-name: Burn Token
+name: Burn Token on Scan
 on:
   repository_dispatch:
     types: [burn_token]
+
 jobs:
   burn:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Update JSON
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Overwrite Status
         run: |
-          sed -i 's/"available"/"used"/g' tokens.json
-      - name: Commit & Push
+          # Physically change the status to 'used' in the JSON file
+          echo '{"bblw": "used"}' > tokens.json
+
+      - name: Commit Change
         run: |
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
           git add tokens.json
-          git commit -m "Token Burned"
+          git commit -m "Token bblw burned - Session Started"
           git push
