@@ -1,28 +1,42 @@
-<script>
-  function verifySession() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlAuth = urlParams.get('auth');
-    const storedAuth = sessionStorage.getItem('valid_session');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exclusive Content</title>
+    <style>
+        body { font-family: 'Helvetica', sans-serif; line-height: 1.6; padding: 20px; color: #333; display: none; }
+        .container { max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 40px; border-radius: 8px; }
+        h1 { color: #e41e26; } /* Coke Red */
+    </style>
+</head>
+<body id="main-body">
+    <div class="container">
+        <h1>Welcome to the Genesis.</h1>
+        <p>This content was unlocked via your physical scan. This session is active for this tab only.</p>
+        <hr>
+        <p><strong>Your Unique Access:</strong> <span id="session-id"></span></p>
+    </div>
 
-    // SECURITY CHECK: 
-    // Does the URL token match the Session Storage token?
-    if (!urlAuth || urlAuth !== storedAuth) {
-      document.body.innerHTML = "<h1>Access Denied</h1><p>You must scan the QR code to view this page.</p>";
-      // Optional: Redirect them away
-      // window.location.href = "../index.html";
-      return;
-    }
+    <script>
+        window.onload = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlAuth = urlParams.get('auth');
+            const sessionAuth = sessionStorage.getItem('active_bblw_session');
 
-    // If it matches, clear the URL so they can't copy-paste the link to a friend
-    window.history.replaceState({}, document.title, window.location.pathname);
-    
-    // Now show the "Secret" content
-    document.getElementById('content').style.display = 'block';
-  }
-  window.onload = verifySession;
-</script>
+            // Security Validation
+            if (!urlAuth || urlAuth !== sessionAuth) {
+                window.location.href = "../access-denied.html";
+                return;
+            }
 
-<div id="content" style="display:none;">
-  <h1>Welcome!</h1>
-  <p>This content is only visible for this single session.</p>
-</div>
+            // Cleanup: Hide the token from the URL bar immediately
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            // Show content
+            document.getElementById('session-id').innerText = urlAuth;
+            document.getElementById('main-body').style.display = 'block';
+        };
+    </script>
+</body>
+</html>
